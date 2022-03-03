@@ -9,7 +9,7 @@ struct Tile {
 }
 
 struct AppStorage {
-    Tile[256][256] map;
+    Tile[32][32] map;
     mapping(address => bool) registered;
 }
 

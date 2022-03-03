@@ -3,12 +3,17 @@ pragma solidity 0.8.12;
 
 import {AppStorage, Modifiers, Tile} from "../libraries/AppStorage.sol";
 
+import "hardhat/console.sol";
+
 contract CoreFacet is Modifiers {
     function register() external {
-        require(!s.registered[msg.sender], "already registered");
-        uint256[2] memory coords = _getRandomCoords(256);
+        require(!s.registered[msg.sender], "CoreFacet: already registered");
+        uint256[2] memory coords = _getRandomCoords(31);
+        console.log("x", coords[0]);
+        console.log("y", coords[1]);
         s.map[coords[0]][coords[1]].account = msg.sender;
         s.map[coords[0]][coords[1]].troops = 10000;
+        s.registered[msg.sender] = true;
     }
 
     function attack(
@@ -16,21 +21,33 @@ contract CoreFacet is Modifiers {
         uint256[2] calldata _to,
         uint256 _amount
     ) external {
-        require(s.map[_from[0]][_from[1]].account == msg.sender, "not owner");
+        require(
+            s.map[_from[0]][_from[1]].account == msg.sender,
+            "CoreFacet: not owner"
+        );
         require(
             s.map[_from[0]][_from[1]].troops > _amount,
-            "amount higher than troops"
+            "CoreFacet: amount higher than troops"
         );
         _checkCords(_from, _to);
         if (s.map[_to[0]][_to[1]].troops == 0) {
             _attackEmpty(_from, _to, _amount);
         } else {
+            console.log("troops", s.map[_to[0]][_to[1]].troops);
             _attack(_from, _to, _amount);
         }
     }
 
-    function getMap() external view returns (Tile[256][256] memory) {
+    function getMap() external view returns (Tile[32][32] memory) {
         return s.map;
+    }
+
+    function getTile(uint256[2] calldata _coords)
+        external
+        view
+        returns (Tile memory)
+    {
+        return s.map[_coords[0]][_coords[1]];
     }
 
     function _attackEmpty(
@@ -40,6 +57,7 @@ contract CoreFacet is Modifiers {
     ) internal {
         s.map[_from[0]][_from[1]].troops -= _amount;
         s.map[_to[0]][_to[1]].troops = _amount;
+        s.map[_to[0]][_to[1]].account = msg.sender;
     }
 
     function _attack(
@@ -51,7 +69,10 @@ contract CoreFacet is Modifiers {
         uint256 defendPoints = _getRandomNumber(
             s.map[_to[0]][_to[1]].troops * 2
         );
-        uint256 attackMinusDefend = attackPoints - defendPoints;
+        uint256 attackMinusDefend;
+        if (attackPoints > defendPoints) {
+            attackMinusDefend = attackPoints - defendPoints;
+        }
 
         if (attackMinusDefend > s.map[_to[0]][_to[1]].troops) {
             s.map[_to[0]][_to[1]].account = msg.sender;
@@ -73,17 +94,20 @@ contract CoreFacet is Modifiers {
         uint256 fromY = _from[1];
         uint256 toX = _to[0];
         uint256 toY = _to[1];
+        if (fromX == toX && fromY == toY) {
+            revert("CoreFacet: equal from to coords");
+        }
         require(
-            (fromX == toX || fromX == toX + 1 || toX == toX - 1) &&
+            (fromX == toX || fromX == toX + 1 || fromX == toX - 1) &&
                 toX >= 0 &&
-                toX <= 256,
-            "Invalid x"
+                toX < 32,
+            "CoreFacet: Invalid x"
         );
         require(
-            (fromY == toY || fromY == toY + 1 || toY == toY - 1) &&
+            (fromY == toY || fromY == toY + 1 || fromY == toY - 1) &&
                 toY >= 0 &&
-                toY <= 256,
-            "Invalid y"
+                toY < 32,
+            "CoreFacet: Invalid y"
         );
     }
 

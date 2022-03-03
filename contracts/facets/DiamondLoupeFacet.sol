@@ -46,7 +46,7 @@ contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
                         facets_[facetIndex].functionSelectors[
                             numFacetSelectors[facetIndex]
                         ] = selector;
-                        // probably will never have more than 256 functions from one facet contract
+                        // probably will never have more than 32 functions from one facet contract
                         require(numFacetSelectors[facetIndex] < 255);
                         numFacetSelectors[facetIndex]++;
                         continueLoop = true;
