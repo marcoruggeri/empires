@@ -5,13 +5,17 @@ import {LibDiamond} from "./LibDiamond.sol";
 
 struct Tile {
     address account;
-    uint256 troops;
+    uint256 units;
+    uint256 gold;
 }
 
 struct AppStorage {
     Tile[32][32] map;
     mapping(address => bool) registered;
-    address stamina;
+    address staminaAddress;
+    address goldAddress;
+    address specialsAddress;
+    mapping(address => uint256) lastStaminaClaimed;
 }
 
 library LibAppStorage {

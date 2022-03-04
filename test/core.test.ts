@@ -2,10 +2,11 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { Signer } from "@ethersproject/abstract-signer";
 import { deployDiamond } from "../scripts/deploy";
-import { CoreFacet, Stamina } from "../typechain";
+import { CoreFacet, SpecialsFacet } from "../typechain";
 import { impersonate } from "../scripts/utils";
 
 let coreFacet: CoreFacet;
+let specialsFacet: SpecialsFacet;
 let diamondAddress;
 let accounts: Signer[];
 let alice: Signer;
@@ -24,6 +25,11 @@ describe("CoreFacet", function () {
       diamondAddress
     )) as CoreFacet;
 
+    specialsFacet = (await ethers.getContractAt(
+      "SpecialsFacet",
+      diamondAddress
+    )) as SpecialsFacet;
+
     accounts = await ethers.getSigners();
     alice = accounts[1];
     aliceAddress = await alice.getAddress();
@@ -32,10 +38,20 @@ describe("CoreFacet", function () {
   });
   it("Test register", async function () {
     coreFacet = await impersonate(aliceAddress, coreFacet, ethers, network);
+    specialsFacet = await impersonate(aliceAddress, coreFacet, ethers, network);
     await coreFacet.register();
     await expect(coreFacet.register()).to.be.revertedWith(
       "CoreFacet: already registered"
     );
+  });
+  it("Test claim stamina", async function () {
+    await expect(coreFacet.claimStamina()).to.be.revertedWith(
+      "CoreFacet: 24hr limit"
+    );
+    await network.provider.send("evm_increaseTime", [86400]);
+    await network.provider.send("evm_mine");
+
+    await coreFacet.claimStamina();
   });
   it("Test check coords", async function () {
     let map: any = await coreFacet.getMap();
@@ -91,10 +107,10 @@ describe("CoreFacet", function () {
       startCoords[0] + 1,
       startCoords[1],
     ]);
-    expect(parseInt(ethers.utils.formatUnits(troopStartPre.troops))).to.equal(
+    expect(parseInt(ethers.utils.formatUnits(troopStartPre.units))).to.equal(
       parseInt(
-        ethers.utils.formatUnits(troopStartPost.troops) +
-          parseInt(ethers.utils.formatUnits(tileAttacked.troops))
+        ethers.utils.formatUnits(troopStartPost.units) +
+          parseInt(ethers.utils.formatUnits(tileAttacked.units))
       )
     );
     expect(tileAttacked.account).to.equal(aliceAddress);

@@ -2,25 +2,38 @@
 pragma solidity 0.8.12;
 
 import {AppStorage, Modifiers, Tile} from "../libraries/AppStorage.sol";
-import {IStamina} from "../interfaces/IStamina.sol";
+import {IERC20} from "../interfaces/IERC20.sol";
+import "../libraries/LibCore.sol";
 
 import "hardhat/console.sol";
 
 contract CoreFacet is Modifiers {
     function register() external {
         require(!s.registered[msg.sender], "CoreFacet: already registered");
-        IStamina stamina = IStamina(s.stamina);
+        IERC20 stamina = IERC20(s.staminaAddress);
         bool registered;
         while (!registered) {
-            uint256[2] memory coords = _getRandomCoords(31);
+            uint256[2] memory coords = LibCore._getRandomCoords(31);
             if (s.map[coords[0]][coords[1]].account == address(0)) {
-                s.map[coords[0]][coords[1]].account = msg.sender;
-                s.map[coords[0]][coords[1]].troops = 10000;
-                s.registered[msg.sender] = true;
                 registered = true;
-                stamina.mint(msg.sender, 1000 ether);
+                s.map[coords[0]][coords[1]].account = msg.sender;
+                s.map[coords[0]][coords[1]].units = 10000;
+                s.registered[msg.sender] = true;
+                s.lastStaminaClaimed[msg.sender] = block.timestamp;
+                stamina.mint(msg.sender, 300 ether);
             }
         }
+    }
+
+    function claimStamina() external {
+        require(s.registered[msg.sender], "CoreFacet: not registered");
+        require(
+            block.timestamp > s.lastStaminaClaimed[msg.sender] + 24 hours,
+            "CoreFacet: 24hr limit"
+        );
+        s.lastStaminaClaimed[msg.sender] = block.timestamp;
+        IERC20 stamina = IERC20(s.staminaAddress);
+        stamina.mint(msg.sender, 100 ether);
     }
 
     function attack(
@@ -33,18 +46,18 @@ contract CoreFacet is Modifiers {
             "CoreFacet: not owner"
         );
         require(
-            s.map[_from[0]][_from[1]].troops > _amount,
-            "CoreFacet: high troops"
+            s.map[_from[0]][_from[1]].units > _amount,
+            "CoreFacet: high units"
         );
-        IStamina stamina = IStamina(s.stamina);
+        IERC20 stamina = IERC20(s.staminaAddress);
         stamina.burnFrom(msg.sender, 10 ether);
-        _checkCords(_from, _to);
-        if (s.map[_to[0]][_to[1]].troops == 0) {
-            _attackEmpty(_from, _to, _amount);
+        LibCore._checkCords(_from, _to);
+        if (s.map[_to[0]][_to[1]].units == 0) {
+            LibCore._attackEmpty(_from, _to, _amount);
         } else if (s.map[_to[0]][_to[1]].account == msg.sender) {
-            _moveTroops(_from, _to, _amount);
+            LibCore._moveUnits(_from, _to, _amount);
         } else {
-            _attack(_from, _to, _amount);
+            LibCore._attack(_from, _to, _amount);
         }
     }
 
@@ -60,129 +73,21 @@ contract CoreFacet is Modifiers {
         return s.map[_coords[0]][_coords[1]];
     }
 
-    function _moveTroops(
-        uint256[2] calldata _from,
-        uint256[2] calldata _to,
-        uint256 _amount
-    ) internal {
-        s.map[_from[0]][_from[1]].troops -= _amount;
-        s.map[_to[0]][_to[1]].troops = _amount;
+    function setAddresses(
+        address _staminaAddress,
+        address _goldAddress,
+        address _specialsAddress
+    ) external onlyOwner {
+        s.staminaAddress = _staminaAddress;
+        s.goldAddress = _goldAddress;
+        s.specialsAddress = _specialsAddress;
     }
 
-    function _attackEmpty(
-        uint256[2] calldata _from,
-        uint256[2] calldata _to,
-        uint256 _amount
-    ) internal {
-        s.map[_from[0]][_from[1]].troops -= _amount;
-        s.map[_to[0]][_to[1]].troops = _amount;
-        s.map[_to[0]][_to[1]].account = msg.sender;
-    }
-
-    function _attack(
-        uint256[2] calldata _from,
-        uint256[2] calldata _to,
-        uint256 _amount
-    ) internal {
-        uint256 attackPoints = _getRandomNumber(_amount);
-        uint256 defendPoints = _getRandomNumber(
-            s.map[_to[0]][_to[1]].troops * 2
-        );
-        uint256 attackMinusDefend;
-        if (attackPoints > defendPoints) {
-            attackMinusDefend = attackPoints - defendPoints;
+    function initializeMap(Tile[32][32] calldata _startMap) external onlyOwner {
+        for (uint256 i; i < 32; i++) {
+            for (uint256 j; j < 32; j++) {
+                s.map[i][j] = _startMap[i][j];
+            }
         }
-
-        if (attackMinusDefend > s.map[_to[0]][_to[1]].troops) {
-            s.map[_to[0]][_to[1]].account = msg.sender;
-            s.map[_to[0]][_to[1]].troops = attackPoints - defendPoints;
-            s.map[_from[0]][_from[1]].troops -= _amount;
-        } else if (attackPoints > defendPoints) {
-            s.map[_from[0]][_from[1]].troops -= attackMinusDefend;
-            s.map[_to[0]][_to[1]].troops -= attackMinusDefend / 2;
-        } else if (defendPoints >= attackPoints) {
-            s.map[_from[0]][_from[1]].troops -= _amount;
-        }
-    }
-
-    function _checkCords(uint256[2] calldata _from, uint256[2] calldata _to)
-        private
-        pure
-    {
-        uint256 fromX = _from[0];
-        uint256 fromY = _from[1];
-        uint256 toX = _to[0];
-        uint256 toY = _to[1];
-        if (fromX == toX && fromY == toY) {
-            revert("CoreFacet: equal from to coords");
-        }
-        require(
-            (fromX == toX || fromX == toX + 1 || fromX == toX - 1) &&
-                toX >= 0 &&
-                toX < 32,
-            "CoreFacet: Invalid x"
-        );
-        require(
-            (fromY == toY || fromY == toY + 1 || fromY == toY - 1) &&
-                toY >= 0 &&
-                toY < 32,
-            "CoreFacet: Invalid y"
-        );
-    }
-
-    function _getRandomCoords(uint256 _max)
-        private
-        view
-        returns (uint256[2] memory)
-    {
-        uint256 x = uint256(
-            keccak256(
-                abi.encodePacked(
-                    msg.sender,
-                    block.difficulty,
-                    block.coinbase,
-                    blockhash(block.number - 1)
-                )
-            )
-        );
-
-        uint256 y = uint256(
-            keccak256(
-                abi.encodePacked(
-                    blockhash(block.number - 1),
-                    block.coinbase,
-                    block.difficulty,
-                    msg.sender
-                )
-            )
-        );
-
-        x = x % _max;
-        y = y % _max;
-
-        uint256[2] memory coords = [x, y];
-
-        return coords;
-    }
-
-    function _getRandomNumber(uint256 _max) private view returns (uint256) {
-        uint256 number = uint256(
-            keccak256(
-                abi.encodePacked(
-                    msg.sender,
-                    block.difficulty,
-                    block.coinbase,
-                    blockhash(block.number - 1)
-                )
-            )
-        );
-
-        number = number % _max;
-
-        return number;
-    }
-
-    function setStaminaAddress(address _stamina) external onlyOwner {
-        s.stamina = _stamina;
     }
 }

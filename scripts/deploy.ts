@@ -7,6 +7,8 @@ import {
   Diamond__factory,
   OwnershipFacet,
   Stamina,
+  Gold,
+  Specials,
   CoreFacet,
 } from "../typechain";
 
@@ -97,16 +99,57 @@ export async function deployDiamond() {
   }
 
   const Stamina = await ethers.getContractFactory("Stamina");
-  const stamina = (await Stamina.deploy(diamond.address)) as Stamina;
+  const stamina = (await Stamina.deploy(diamond.address, {
+    gasPrice,
+  })) as Stamina;
+  const Gold = await ethers.getContractFactory("Gold");
+  const gold = (await Gold.deploy(diamond.address, { gasPrice })) as Gold;
+  const Specials = await ethers.getContractFactory("Specials");
+  const specials = (await Specials.deploy(diamond.address, gold.address, {
+    gasPrice,
+  })) as Specials;
 
   console.log(`Stamina deployed: ${stamina.address}`);
+  console.log(`Gold deployed: ${gold.address}`);
+  console.log(`Specials deployed: ${specials.address}`);
 
   const coreFacet = (await ethers.getContractAt(
     "CoreFacet",
     diamond.address
   )) as CoreFacet;
 
-  await coreFacet.setStaminaAddress(stamina.address);
+  const rows = 32;
+  const cols = 32;
+
+  let map: any = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => null)
+  );
+  for (let i = 0; i < 32; i++) {
+    for (let j = 0; j < 32; j++) {
+      let r = Math.floor(Math.random() * 4);
+      let gold: any = 0;
+      if (r === 0) {
+        gold = (Math.floor(Math.random() * 99) + 1).toString();
+      }
+      let tile = {
+        account: "0x0000000000000000000000000000000000000000",
+        units: 0,
+        gold: gold === 0 ? 0 : ethers.utils.parseUnits(gold),
+      };
+      map[i][j] = tile;
+    }
+  }
+
+  await coreFacet.initializeMap(map, { gasPrice });
+
+  await coreFacet.setAddresses(
+    stamina.address,
+    gold.address,
+    specials.address,
+    { gasPrice }
+  );
+
+  await specials.addSpecial(0, ethers.utils.parseUnits("50"), { gasPrice });
 
   return diamond.address;
 }
