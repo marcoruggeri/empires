@@ -11,6 +11,7 @@ struct Tile {
 struct AppStorage {
     Tile[32][32] map;
     mapping(address => bool) registered;
+    address stamina;
 }
 
 library LibAppStorage {

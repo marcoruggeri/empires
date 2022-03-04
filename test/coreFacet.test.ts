@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { Signer } from "@ethersproject/abstract-signer";
 import { deployDiamond } from "../scripts/deploy";
-import { CoreFacet } from "../typechain";
+import { CoreFacet, Stamina } from "../typechain";
 import { impersonate } from "../scripts/utils";
 
 let coreFacet: CoreFacet;

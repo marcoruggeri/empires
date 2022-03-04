@@ -2,18 +2,25 @@
 pragma solidity 0.8.12;
 
 import {AppStorage, Modifiers, Tile} from "../libraries/AppStorage.sol";
+import {IStamina} from "../interfaces/IStamina.sol";
 
 import "hardhat/console.sol";
 
 contract CoreFacet is Modifiers {
     function register() external {
         require(!s.registered[msg.sender], "CoreFacet: already registered");
-        uint256[2] memory coords = _getRandomCoords(31);
-        console.log("x", coords[0]);
-        console.log("y", coords[1]);
-        s.map[coords[0]][coords[1]].account = msg.sender;
-        s.map[coords[0]][coords[1]].troops = 10000;
-        s.registered[msg.sender] = true;
+        IStamina stamina = IStamina(s.stamina);
+        bool registered;
+        while (!registered) {
+            uint256[2] memory coords = _getRandomCoords(31);
+            if (s.map[coords[0]][coords[1]].account == address(0)) {
+                s.map[coords[0]][coords[1]].account = msg.sender;
+                s.map[coords[0]][coords[1]].troops = 10000;
+                s.registered[msg.sender] = true;
+                registered = true;
+                stamina.mint(msg.sender, 1000 ether);
+            }
+        }
     }
 
     function attack(
@@ -27,13 +34,16 @@ contract CoreFacet is Modifiers {
         );
         require(
             s.map[_from[0]][_from[1]].troops > _amount,
-            "CoreFacet: amount higher than troops"
+            "CoreFacet: high troops"
         );
+        IStamina stamina = IStamina(s.stamina);
+        stamina.burnFrom(msg.sender, 10 ether);
         _checkCords(_from, _to);
         if (s.map[_to[0]][_to[1]].troops == 0) {
             _attackEmpty(_from, _to, _amount);
+        } else if (s.map[_to[0]][_to[1]].account == msg.sender) {
+            _moveTroops(_from, _to, _amount);
         } else {
-            console.log("troops", s.map[_to[0]][_to[1]].troops);
             _attack(_from, _to, _amount);
         }
     }
@@ -48,6 +58,15 @@ contract CoreFacet is Modifiers {
         returns (Tile memory)
     {
         return s.map[_coords[0]][_coords[1]];
+    }
+
+    function _moveTroops(
+        uint256[2] calldata _from,
+        uint256[2] calldata _to,
+        uint256 _amount
+    ) internal {
+        s.map[_from[0]][_from[1]].troops -= _amount;
+        s.map[_to[0]][_to[1]].troops = _amount;
     }
 
     function _attackEmpty(
@@ -161,5 +180,9 @@ contract CoreFacet is Modifiers {
         number = number % _max;
 
         return number;
+    }
+
+    function setStaminaAddress(address _stamina) external onlyOwner {
+        s.stamina = _stamina;
     }
 }

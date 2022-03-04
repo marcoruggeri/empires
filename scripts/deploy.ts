@@ -6,11 +6,13 @@ import {
   DiamondInit__factory,
   Diamond__factory,
   OwnershipFacet,
+  Stamina,
+  CoreFacet,
 } from "../typechain";
 
-// import {getSelectors, FacetCutAction} from '../libraries/diamond'
-
 const { getSelectors, FacetCutAction } = require("./libraries/diamond");
+
+const gasPrice = 100000000000;
 
 export async function deployDiamond() {
   const accounts: Signer[] = await ethers.getSigners();
@@ -20,7 +22,7 @@ export async function deployDiamond() {
 
   // deploy DiamondCutFacet
   const DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
-  const diamondCutFacet = await DiamondCutFacet.deploy();
+  const diamondCutFacet = await DiamondCutFacet.deploy({ gasPrice });
   await diamondCutFacet.deployed();
   console.log("DiamondCutFacet deployed:", diamondCutFacet.address);
 
@@ -30,7 +32,8 @@ export async function deployDiamond() {
   )) as Diamond__factory;
   const diamond = await Diamond.deploy(
     deployerAddress,
-    diamondCutFacet.address
+    diamondCutFacet.address,
+    { gasPrice }
   );
   await diamond.deployed();
   console.log("Diamond deployed:", diamond.address);
@@ -39,7 +42,7 @@ export async function deployDiamond() {
   const DiamondInit = (await ethers.getContractFactory(
     "DiamondInit"
   )) as DiamondInit__factory;
-  const diamondInit = await DiamondInit.deploy();
+  const diamondInit = await DiamondInit.deploy({ gasPrice });
   await diamondInit.deployed();
   console.log("DiamondInit deployed:", diamondInit.address);
 
@@ -50,7 +53,7 @@ export async function deployDiamond() {
   const cut = [];
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName);
-    const facet = await Facet.deploy();
+    const facet = await Facet.deploy({ gasPrice });
     await facet.deployed();
     console.log(`${FacetName} deployed: ${facet.address}`);
     cut.push({
@@ -70,7 +73,8 @@ export async function deployDiamond() {
   const tx = await diamondCut.diamondCut(
     cut,
     diamondInit.address,
-    functionCall
+    functionCall,
+    { gasPrice }
   );
   console.log("Diamond cut tx: ", tx.hash);
   const receipt = await tx.wait();
@@ -91,6 +95,18 @@ export async function deployDiamond() {
       `Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
     );
   }
+
+  const Stamina = await ethers.getContractFactory("Stamina");
+  const stamina = (await Stamina.deploy(diamond.address)) as Stamina;
+
+  console.log(`Stamina deployed: ${stamina.address}`);
+
+  const coreFacet = (await ethers.getContractAt(
+    "CoreFacet",
+    diamond.address
+  )) as CoreFacet;
+
+  await coreFacet.setStaminaAddress(stamina.address);
 
   return diamond.address;
 }
