@@ -30,4 +30,12 @@ contract Specials is ERC1155, Ownable {
     function addSpecial(uint256 _id, uint256 _price) external onlyOwner {
         prices[_id] = _price;
     }
+
+    function setAddresses(address _gameDiamond, address _goldAddress)
+        external
+        onlyOwner
+    {
+        gameDiamond = _gameDiamond;
+        goldAddress = _goldAddress;
+    }
 }

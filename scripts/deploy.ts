@@ -14,7 +14,7 @@ import {
 
 const { getSelectors, FacetCutAction } = require("./libraries/diamond");
 
-const gasPrice = 100000000000;
+const gasPrice = 31000000000;
 
 export async function deployDiamond() {
   const accounts: Signer[] = await ethers.getSigners();
@@ -51,7 +51,12 @@ export async function deployDiamond() {
   // deploy facets
   console.log("");
   console.log("Deploying facets");
-  const FacetNames = ["DiamondLoupeFacet", "OwnershipFacet", "CoreFacet"];
+  const FacetNames = [
+    "DiamondLoupeFacet",
+    "OwnershipFacet",
+    "CoreFacet",
+    "SpecialsFacet",
+  ];
   const cut = [];
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName);
@@ -103,7 +108,11 @@ export async function deployDiamond() {
     gasPrice,
   })) as Stamina;
   const Gold = await ethers.getContractFactory("Gold");
-  const gold = (await Gold.deploy(diamond.address, { gasPrice })) as Gold;
+  const gold = (await Gold.deploy(
+    "0x0000000000000000000000000000000000000000",
+    "0x0000000000000000000000000000000000000000",
+    { gasPrice }
+  )) as Gold;
   const Specials = await ethers.getContractFactory("Specials");
   const specials = (await Specials.deploy(diamond.address, gold.address, {
     gasPrice,
@@ -112,6 +121,8 @@ export async function deployDiamond() {
   console.log(`Stamina deployed: ${stamina.address}`);
   console.log(`Gold deployed: ${gold.address}`);
   console.log(`Specials deployed: ${specials.address}`);
+
+  await gold.setAddresses(diamond.address, specials.address, { gasPrice });
 
   const coreFacet = (await ethers.getContractAt(
     "CoreFacet",
@@ -129,7 +140,7 @@ export async function deployDiamond() {
       let r = Math.floor(Math.random() * 4);
       let gold: any = 0;
       if (r === 0) {
-        gold = (Math.floor(Math.random() * 99) + 1).toString();
+        gold = (Math.floor(Math.random() * 74) + 25).toString();
       }
       let tile = {
         account: "0x0000000000000000000000000000000000000000",

@@ -26,7 +26,7 @@ contract SpecialsFacet is Modifiers {
         specials.burnFrom(msg.sender, 0);
         IERC20 stamina = IERC20(s.staminaAddress);
         stamina.burnFrom(msg.sender, 50 ether);
-        LibCore._checkCords(_from, _to);
+        LibCore._checkCordsLongRange(_from, _to);
         if (s.map[_to[0]][_to[1]].units == 0) {
             LibCore._attackEmpty(_from, _to, _amount);
         } else if (s.map[_to[0]][_to[1]].account == msg.sender) {

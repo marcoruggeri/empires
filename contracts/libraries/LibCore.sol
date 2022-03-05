@@ -84,6 +84,31 @@ library LibCore {
         );
     }
 
+    function _checkCordsLongRange(
+        uint256[2] calldata _from,
+        uint256[2] calldata _to
+    ) internal pure {
+        uint256 fromX = _from[0];
+        uint256 fromY = _from[1];
+        uint256 toX = _to[0];
+        uint256 toY = _to[1];
+        if (fromX == toX && fromY == toY) {
+            revert("CoreFacet: equal from to coords");
+        }
+        require(
+            (fromX == toX || fromX == toX + 5 || fromX == toX - 5) &&
+                toX >= 0 &&
+                toX < 32,
+            "CoreFacet: Invalid x"
+        );
+        require(
+            (fromY == toY || fromY == toY + 5 || fromY == toY - 5) &&
+                toY >= 0 &&
+                toY < 32,
+            "CoreFacet: Invalid y"
+        );
+    }
+
     function _getRandomCoords(uint256 _max)
         internal
         view

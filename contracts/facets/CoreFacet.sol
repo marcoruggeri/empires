@@ -17,10 +17,10 @@ contract CoreFacet is Modifiers {
             if (s.map[coords[0]][coords[1]].account == address(0)) {
                 registered = true;
                 s.map[coords[0]][coords[1]].account = msg.sender;
-                s.map[coords[0]][coords[1]].units = 10000;
+                s.map[coords[0]][coords[1]].units = 200;
                 s.registered[msg.sender] = true;
                 s.lastStaminaClaimed[msg.sender] = block.timestamp;
-                stamina.mint(msg.sender, 300 ether);
+                stamina.mint(msg.sender, 200 ether);
             }
         }
     }
@@ -33,7 +33,19 @@ contract CoreFacet is Modifiers {
         );
         s.lastStaminaClaimed[msg.sender] = block.timestamp;
         IERC20 stamina = IERC20(s.staminaAddress);
-        stamina.mint(msg.sender, 100 ether);
+        stamina.mint(msg.sender, 200 ether);
+    }
+
+    function deployUnits(uint256[2] calldata _coords, uint256 _amount)
+        external
+    {
+        require(
+            s.map[_coords[0]][_coords[1]].account == msg.sender,
+            "CoreFacet: not owner"
+        );
+        IERC20 stamina = IERC20(s.staminaAddress);
+        stamina.burnFrom(msg.sender, _amount**1e18);
+        s.map[_coords[0]][_coords[1]].units += _amount;
     }
 
     function attack(
