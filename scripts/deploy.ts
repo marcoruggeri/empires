@@ -14,7 +14,7 @@ import {
 
 const { getSelectors, FacetCutAction } = require("./libraries/diamond");
 
-const gasPrice = 31000000000;
+const gasPrice = 35000000000;
 
 export async function deployDiamond() {
   const accounts: Signer[] = await ethers.getSigners();
@@ -122,7 +122,12 @@ export async function deployDiamond() {
   console.log(`Gold deployed: ${gold.address}`);
   console.log(`Specials deployed: ${specials.address}`);
 
-  await gold.setAddresses(diamond.address, specials.address, { gasPrice });
+  const goldSetAddresses = await gold.setAddresses(
+    diamond.address,
+    specials.address,
+    { gasPrice }
+  );
+  await goldSetAddresses.wait();
 
   const coreFacet = (await ethers.getContractAt(
     "CoreFacet",
@@ -132,35 +137,57 @@ export async function deployDiamond() {
   const rows = 32;
   const cols = 32;
 
-  let map: any = Array.from({ length: rows }, () =>
+  let mapGold: any = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => null)
   );
   for (let i = 0; i < 32; i++) {
     for (let j = 0; j < 32; j++) {
-      let r = Math.floor(Math.random() * 4);
+      let r = Math.floor(Math.random() * 6);
       let gold: any = 0;
       if (r === 0) {
-        gold = (Math.floor(Math.random() * 74) + 25).toString();
+        gold = (Math.floor(Math.random() * 499) + 100).toString();
       }
-      let tile = {
-        account: "0x0000000000000000000000000000000000000000",
-        units: 0,
-        gold: gold === 0 ? 0 : ethers.utils.parseUnits(gold),
-      };
-      map[i][j] = tile;
+      let tile = gold;
+      mapGold[i][j] = tile;
     }
   }
 
-  await coreFacet.initializeMap(map, { gasPrice });
+  let mapUnits: any = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => null)
+  );
+  for (let i = 0; i < 32; i++) {
+    for (let j = 0; j < 32; j++) {
+      let r = Math.floor(Math.random() * 2);
+      let units: any = 0;
+      if (r === 0) {
+        units = (Math.floor(Math.random() * 49) + 10).toString();
+      }
+      let tile = units;
+      mapUnits[i][j] = tile;
+    }
+  }
 
-  await coreFacet.setAddresses(
+  const initializeGold = await coreFacet.initializeGold(mapGold, { gasPrice });
+  await initializeGold.wait();
+  const initializeUnits = await coreFacet.initializeUnits(mapUnits, {
+    gasPrice,
+  });
+  await initializeUnits.wait();
+
+  const setAddresses = await coreFacet.setAddresses(
     stamina.address,
     gold.address,
     specials.address,
     { gasPrice }
   );
+  await setAddresses.wait();
 
-  await specials.addSpecial(0, ethers.utils.parseUnits("50"), { gasPrice });
+  const addSpecial = await specials.addSpecial(
+    0,
+    ethers.utils.parseUnits("50"),
+    { gasPrice }
+  );
+  await addSpecial.wait();
 
   return diamond.address;
 }

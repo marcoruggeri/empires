@@ -29,11 +29,37 @@ contract CoreFacet is Modifiers {
         require(s.registered[msg.sender], "CoreFacet: not registered");
         require(
             block.timestamp > s.lastStaminaClaimed[msg.sender] + 24 hours,
-            "CoreFacet: 24hr limit"
+            "CoreFacet: stm 24hr limit"
         );
         s.lastStaminaClaimed[msg.sender] = block.timestamp;
         IERC20 stamina = IERC20(s.staminaAddress);
         stamina.mint(msg.sender, 200 ether);
+    }
+
+    function claimGold(uint256[2] calldata _coords) external {
+        require(
+            s.map[_coords[0]][_coords[1]].account == msg.sender,
+            "CoreFacet: not owner"
+        );
+        require(
+            s.map[_coords[0]][_coords[1]].gold > 0,
+            "CoreFacet: not a mine"
+        );
+        require(
+            block.timestamp >
+                s.lastGoldClaimed[_coords[0]][_coords[1]] + 24 hours,
+            "CoreFacet: gld 24hr limit"
+        );
+        uint256 goldAmount;
+        if (s.map[_coords[0]][_coords[1]].units < 50) {
+            goldAmount = s.map[_coords[0]][_coords[1]].units;
+        } else {
+            goldAmount = 50;
+        }
+        s.map[_coords[0]][_coords[1]].gold -= goldAmount * 1e18;
+        s.lastGoldClaimed[_coords[0]][_coords[1]] = block.timestamp;
+        IERC20 gold = IERC20(s.goldAddress);
+        gold.mint(msg.sender, goldAmount * 1e18);
     }
 
     function deployUnits(uint256[2] calldata _coords, uint256 _amount)
@@ -44,7 +70,7 @@ contract CoreFacet is Modifiers {
             "CoreFacet: not owner"
         );
         IERC20 stamina = IERC20(s.staminaAddress);
-        stamina.burnFrom(msg.sender, _amount**1e18);
+        stamina.burnFrom(msg.sender, _amount * 1e18);
         s.map[_coords[0]][_coords[1]].units += _amount;
     }
 
@@ -95,10 +121,24 @@ contract CoreFacet is Modifiers {
         s.specialsAddress = _specialsAddress;
     }
 
-    function initializeMap(Tile[32][32] calldata _startMap) external onlyOwner {
+    function initializeGold(uint256[32][32] calldata _goldMap)
+        external
+        onlyOwner
+    {
         for (uint256 i; i < 32; i++) {
             for (uint256 j; j < 32; j++) {
-                s.map[i][j] = _startMap[i][j];
+                s.map[i][j].gold = _goldMap[i][j];
+            }
+        }
+    }
+
+    function initializeUnits(uint256[32][32] calldata _unitsMap)
+        external
+        onlyOwner
+    {
+        for (uint256 i; i < 32; i++) {
+            for (uint256 j; j < 32; j++) {
+                s.map[i][j].units = _unitsMap[i][j];
             }
         }
     }

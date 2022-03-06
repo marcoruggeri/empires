@@ -16,6 +16,8 @@ struct AppStorage {
     address goldAddress;
     address specialsAddress;
     mapping(address => uint256) lastStaminaClaimed;
+    // x => y => last timestamp
+    mapping(uint256 => mapping(uint256 => uint256)) lastGoldClaimed;
 }
 
 library LibAppStorage {

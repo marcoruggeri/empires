@@ -14,7 +14,7 @@ library LibCore {
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.map[_from[0]][_from[1]].units -= _amount;
-        s.map[_to[0]][_to[1]].units = _amount;
+        s.map[_to[0]][_to[1]].units += _amount;
     }
 
     function _attackEmpty(
@@ -26,10 +26,6 @@ library LibCore {
         s.map[_from[0]][_from[1]].units -= _amount;
         s.map[_to[0]][_to[1]].units = _amount;
         s.map[_to[0]][_to[1]].account = msg.sender;
-        if (s.map[_to[0]][_to[1]].gold > 0) {
-            IERC20 gold = IERC20(s.goldAddress);
-            gold.mint(msg.sender, s.map[_to[0]][_to[1]].gold);
-        }
     }
 
     function _attack(
@@ -38,24 +34,16 @@ library LibCore {
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 attackPoints = _getRandomNumber(_amount);
-        uint256 defendPoints = _getRandomNumber(
-            s.map[_to[0]][_to[1]].units * 2
-        );
-        uint256 attackMinusDefend;
-        if (attackPoints > defendPoints) {
-            attackMinusDefend = attackPoints - defendPoints;
-        }
+        uint256 attackPoints = _amount - (((_amount * 100) / 3) / 100);
+        uint256 defendPoints = s.map[_to[0]][_to[1]].units;
 
-        if (attackMinusDefend > s.map[_to[0]][_to[1]].units) {
+        if (attackPoints > defendPoints) {
             s.map[_to[0]][_to[1]].account = msg.sender;
             s.map[_to[0]][_to[1]].units = attackPoints - defendPoints;
             s.map[_from[0]][_from[1]].units -= _amount;
-        } else if (attackPoints > defendPoints) {
-            s.map[_from[0]][_from[1]].units -= attackMinusDefend;
-            s.map[_to[0]][_to[1]].units -= attackMinusDefend / 2;
         } else if (defendPoints >= attackPoints) {
             s.map[_from[0]][_from[1]].units -= _amount;
+            s.map[_to[0]][_to[1]].units -= attackPoints;
         }
     }
 
@@ -95,18 +83,22 @@ library LibCore {
         if (fromX == toX && fromY == toY) {
             revert("CoreFacet: equal from to coords");
         }
-        require(
-            (fromX == toX || fromX == toX + 5 || fromX == toX - 5) &&
-                toX >= 0 &&
-                toX < 32,
-            "CoreFacet: Invalid x"
-        );
-        require(
-            (fromY == toY || fromY == toY + 5 || fromY == toY - 5) &&
-                toY >= 0 &&
-                toY < 32,
-            "CoreFacet: Invalid y"
-        );
+        require(toX >= 0 && toX < 32, "CoreFacet: toX out of bounds");
+        if (fromX < toX) {
+            require(fromX + 5 >= toX, "CoreFacet: fromX<toX Invalid x");
+        } else if (fromX > toX) {
+            unchecked {
+                require(fromX - 5 <= toX, "CoreFacet: fromX>toX Invalid x");
+            }
+        }
+        require(toY >= 0 && toY < 32, "CoreFacet: toY out of bounds");
+        if (fromY < toY) {
+            require(fromY + 5 >= toY, "CoreFacet: fromY<toY Invalid y");
+        } else if (fromY > toY) {
+            unchecked {
+                require(fromY - 5 <= toY, "CoreFacet: fromY>toY Invalid y");
+            }
+        }
     }
 
     function _getRandomCoords(uint256 _max)
@@ -144,20 +136,20 @@ library LibCore {
         return coords;
     }
 
-    function _getRandomNumber(uint256 _max) internal view returns (uint256) {
-        uint256 number = uint256(
-            keccak256(
-                abi.encodePacked(
-                    msg.sender,
-                    block.difficulty,
-                    block.coinbase,
-                    blockhash(block.number - 1)
-                )
-            )
-        );
+    // function _getRandomNumber(uint256 _max) internal view returns (uint256) {
+    //     uint256 number = uint256(
+    //         keccak256(
+    //             abi.encodePacked(
+    //                 msg.sender,
+    //                 block.difficulty,
+    //                 block.coinbase,
+    //                 blockhash(block.number - 1)
+    //             )
+    //         )
+    //     );
 
-        number = number % _max;
+    //     number = number % _max;
 
-        return number;
-    }
+    //     return number;
+    // }
 }
