@@ -6,6 +6,7 @@ import {
   ContractTransaction,
   PopulatedTransaction,
 } from "@ethersproject/contracts";
+import "@nomiclabs/hardhat-ethers";
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
 import { OwnershipFacet } from "../typechain/OwnershipFacet";
@@ -13,7 +14,7 @@ import { IDiamondCut } from "../typechain/IDiamondCut";
 import { getSelectors } from "../scripts/libraries/diamond";
 import { getSighashes } from "../scripts/utils";
 
-const gasPrice = 31000000000;
+const gasPrice = 35000000000;
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 

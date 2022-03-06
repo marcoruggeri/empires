@@ -14,55 +14,32 @@ export async function upgrade(diamondAddress: string) {
     {
       facetName: "CoreFacet",
       addSelectors: [
-        "function register() external",
-        "function claimStamina() external",
+        // "function register() external",
+        // "function claimStamina() external",
         "function claimGold(uint256[2] calldata _coords) external",
-        "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
-        "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+        // "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
+        // "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
       ],
       removeSelectors: [
-        "function register() external",
-        "function claimStamina() external",
-        "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
-        "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+        // "function register() external",
+        // "function claimStamina() external",
+        // "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
+        // "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+        "function claimGold(uint256[2] calldata _coords) external",
       ],
     },
-    {
-      facetName: "SpecialsFacet",
-      addSelectors: [
-        "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
-      ],
-      removeSelectors: [
-        "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
-      ],
-    },
+    // {
+    //   facetName: "SpecialsFacet",
+    //   addSelectors: [
+    //     "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+    //   ],
+    //   removeSelectors: [
+    //     "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+    //   ],
+    // },
   ];
 
   const joined = convertFacetAndSelectorsToString(facets);
-
-  // let iface: AlchemicaFacetInterface = new ethers.utils.Interface(
-  //   AlchemicaFacet__factory.abi
-  // ) as AlchemicaFacetInterface;
-
-  // const calldata = iface.encodeFunctionData(
-  //   //@ts-ignore
-  //   "setVars",
-  //   [
-  //     alchemicaTotals(),
-  //     boostMultipliers,
-  //     greatPortalCapacity,
-  //     installationDiamond
-  //       ? installationDiamond
-  //       : "0x7Cc7B6964d8C49d072422B2e7FbF55C2Ca6FefA5",
-  //     "0x0000000000000000000000000000000000000000",
-  //     "0x0000000000000000000000000000000000000000",
-  //     [alchemica.fud, alchemica.fomo, alchemica.alpha, alchemica.kek],
-  //     alchemica.glmr,
-  //     "0x",
-  //     "0x7Cc7B6964d8C49d072422B2e7FbF55C2Ca6FefA5",
-  //     "0x7Cc7B6964d8C49d072422B2e7FbF55C2Ca6FefA5",
-  //   ]
-  // );
 
   const args: DeployUpgradeTaskArgs = {
     diamondUpgrader: diamondUpgrader,
@@ -78,7 +55,7 @@ export async function upgrade(diamondAddress: string) {
 }
 
 if (require.main === module) {
-  upgrade("0xC9B5067f7a07c12A1C2b7749B8B66CE83b8ce4E1")
+  upgrade("0xc7F33460243Db61ad8BB0625F56964c3dEE788f2")
     .then(() => process.exit(0))
     // .then(() => console.log('upgrade completed') /* process.exit(0) */)
     .catch((error) => {

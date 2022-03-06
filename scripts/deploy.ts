@@ -1,4 +1,3 @@
-//@ts-ignore
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
 import {
@@ -142,12 +141,12 @@ export async function deployDiamond() {
   );
   for (let i = 0; i < 32; i++) {
     for (let j = 0; j < 32; j++) {
-      let r = Math.floor(Math.random() * 6);
+      let r = Math.floor(Math.random() * 5);
       let gold: any = 0;
       if (r === 0) {
-        gold = (Math.floor(Math.random() * 499) + 100).toString();
+        gold = Math.floor(Math.random() * 499) + 100;
       }
-      let tile = gold;
+      let tile = ethers.utils.parseEther(gold.toString());
       mapGold[i][j] = tile;
     }
   }

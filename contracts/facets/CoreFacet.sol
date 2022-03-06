@@ -50,11 +50,17 @@ contract CoreFacet is Modifiers {
                 s.lastGoldClaimed[_coords[0]][_coords[1]] + 24 hours,
             "CoreFacet: gld 24hr limit"
         );
+        uint256 tileGold = s.map[_coords[0]][_coords[1]].gold;
+        uint256 tileUnits = s.map[_coords[0]][_coords[1]].units;
         uint256 goldAmount;
-        if (s.map[_coords[0]][_coords[1]].units < 50) {
-            goldAmount = s.map[_coords[0]][_coords[1]].units;
+        if (tileGold >= 50 || tileGold >= tileUnits) {
+            if (tileUnits < 50) {
+                goldAmount = tileUnits;
+            } else {
+                goldAmount = 50;
+            }
         } else {
-            goldAmount = 50;
+            goldAmount = tileGold;
         }
         s.map[_coords[0]][_coords[1]].gold -= goldAmount * 1e18;
         s.lastGoldClaimed[_coords[0]][_coords[1]] = block.timestamp;
@@ -87,6 +93,7 @@ contract CoreFacet is Modifiers {
             s.map[_from[0]][_from[1]].units > _amount,
             "CoreFacet: high units"
         );
+        require(_amount > 0, "CoreFacet: amount 0");
         IERC20 stamina = IERC20(s.staminaAddress);
         stamina.burnFrom(msg.sender, 10 ether);
         LibCore._checkCords(_from, _to);
