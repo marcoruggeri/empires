@@ -18,6 +18,7 @@ contract CoreFacet is Modifiers {
                 registered = true;
                 s.map[coords[0]][coords[1]].account = msg.sender;
                 s.map[coords[0]][coords[1]].units = 200;
+                s.map[coords[0]][coords[1]].gold = 0;
                 s.registered[msg.sender] = true;
                 s.lastStaminaClaimed[msg.sender] = block.timestamp;
                 stamina.mint(msg.sender, 200 ether);
@@ -44,7 +45,7 @@ contract CoreFacet is Modifiers {
     function claimStamina() external {
         require(s.registered[msg.sender], "CoreFacet: not registered");
         require(
-            block.timestamp > s.lastStaminaClaimed[msg.sender] + 24 hours,
+            block.timestamp > s.lastStaminaClaimed[msg.sender] + 3 hours,
             "CoreFacet: stm 24hr limit"
         );
         s.lastStaminaClaimed[msg.sender] = block.timestamp;
@@ -63,7 +64,7 @@ contract CoreFacet is Modifiers {
         );
         require(
             block.timestamp >
-                s.lastGoldClaimed[_coords[0]][_coords[1]] + 24 hours,
+                s.lastGoldClaimed[_coords[0]][_coords[1]] + 3 hours,
             "CoreFacet: gld 24hr limit"
         );
         uint256 tileGold = s.map[_coords[0]][_coords[1]].gold;
@@ -132,6 +133,26 @@ contract CoreFacet is Modifiers {
         returns (Tile memory)
     {
         return s.map[_coords[0]][_coords[1]];
+    }
+
+    function getRegistered(address _account) external view returns (bool) {
+        return s.registered[_account];
+    }
+
+    function getLastStaminaClaimed(address _account)
+        external
+        view
+        returns (uint256)
+    {
+        return s.lastStaminaClaimed[_account];
+    }
+
+    function getLastGoldClaimed(uint256[2] calldata _coords)
+        external
+        view
+        returns (uint256)
+    {
+        return s.lastGoldClaimed[_coords[0]][_coords[1]];
     }
 
     function setAddresses(

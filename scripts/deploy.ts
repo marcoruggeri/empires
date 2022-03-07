@@ -141,10 +141,10 @@ export async function deployDiamond() {
   );
   for (let i = 0; i < 32; i++) {
     for (let j = 0; j < 32; j++) {
-      let r = Math.floor(Math.random() * 5);
+      let r = Math.floor(Math.random() * 8);
       let gold: any = 0;
       if (r === 0) {
-        gold = Math.floor(Math.random() * 499) + 100;
+        gold = Math.floor(Math.random() * 999) + 100;
       }
       let tile = ethers.utils.parseEther(gold.toString());
       mapGold[i][j] = tile;

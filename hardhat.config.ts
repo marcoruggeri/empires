@@ -9,7 +9,7 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 
-require("./tasks/deployUpgrade.ts");
+require("./task/deployUpgrade.ts");
 
 dotenv.config();
 

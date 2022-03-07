@@ -8,11 +8,21 @@ import {
 } from "@ethersproject/contracts";
 import "@nomiclabs/hardhat-ethers";
 import { Signer } from "@ethersproject/abstract-signer";
-import { ethers } from "hardhat";
+import { ethers } from "ethers";
 import { OwnershipFacet } from "../typechain/OwnershipFacet";
 import { IDiamondCut } from "../typechain/IDiamondCut";
-import { getSelectors } from "../scripts/libraries/diamond";
 import { getSighashes } from "../scripts/utils";
+
+export function getSelectors(contract: Contract) {
+  const signatures = Object.keys(contract.interface.functions);
+  const selectors = signatures.reduce((acc: string[], val: string) => {
+    if (val !== "init(bytes)") {
+      acc.push(contract.interface.getSighash(val));
+    }
+    return acc;
+  }, []);
+  return selectors;
+}
 
 const gasPrice = 35000000000;
 
@@ -114,31 +124,33 @@ task(
       const initCalldata = taskArgs.initCalldata;
 
       //Instantiate the Signer
-      let signer: Signer;
-      const owner = await (
-        (await hre.ethers.getContractAt(
-          "OwnershipFacet",
-          diamondAddress
-        )) as OwnershipFacet
-      ).owner();
-      const testing = ["hardhat", "localhost"].includes(hre.network.name);
+      // let signer: Signer;
+      // const owner = await (
+      //   (await hre.ethers.getContractAt(
+      //     "OwnershipFacet",
+      //     diamondAddress
+      //   )) as OwnershipFacet
+      // ).owner();
+      let signer = (await hre.ethers.getSigners())[0];
+      // const testing = ["hardhat", "localhost"].includes(hre.network.name);
+      let testing = false;
 
-      if (testing) {
-        await hre.network.provider.request({
-          method: "hardhat_impersonateAccount",
-          params: [owner],
-        });
-        signer = await ethers.getSigner(owner);
-      } else if (hre.network.name === "matic") {
-        if (useLedger) {
-          const {
-            LedgerSigner,
-          } = require("../../aavegotchi-contracts/node_modules/@ethersproject/hardware-wallets");
-          signer = new LedgerSigner(hre.ethers.provider);
-        } else signer = (await hre.ethers.getSigners())[0];
-      } else {
-        throw Error("Incorrect network selected");
-      }
+      // if (testing) {
+      //   await hre.network.provider.request({
+      //     method: "hardhat_impersonateAccount",
+      //     params: [owner],
+      //   });
+      //   signer = await hre.ethers.getSigner(owner);
+      // } else if (hre.network.name === "mumbai") {
+      //   if (useLedger) {
+      //     const {
+      //       LedgerSigner,
+      //     } = require("../../aavegotchi-contracts/node_modules/@ethersproject/hardware-wallets");
+      //     signer = new LedgerSigner(hre.ethers.provider);
+      //   } else signer = (await hre.ethers.getSigners())[0];
+      // } else {
+      //   throw Error("Incorrect network selected");
+      // }
 
       //Create the cut
       const deployedFacets = [];
