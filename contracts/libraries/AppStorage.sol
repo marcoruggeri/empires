@@ -9,15 +9,27 @@ struct Tile {
     uint256 gold;
 }
 
+struct RequestConfig {
+  uint64 subId;
+  uint32 callbackGasLimit;
+  uint16 requestConfirmations;
+  uint32 numWords;
+  bytes32 keyHash;
+}
+
 struct AppStorage {
     Tile[32][32] map;
     mapping(address => bool) registered;
     address staminaAddress;
     address goldAddress;
     address specialsAddress;
+    address vrfCoordinator;
+    address linkAddress;
+    RequestConfig requestConfig;
     mapping(address => uint256) lastStaminaClaimed;
     // x => y => last timestamp
     mapping(uint256 => mapping(uint256 => uint256)) lastGoldClaimed;
+    mapping(uint256 => address) vrfRequestIdToAccount;
 }
 
 library LibAppStorage {

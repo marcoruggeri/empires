@@ -19,24 +19,21 @@ contract CoreFacet is Modifiers {
         uint256 _defendUnits
     );
 
-    function register() external {
+    function register() external onlyParcelOwner(_realmId) {
         require(!s.registered[msg.sender], "CoreFacet: already registered");
-        IERC20 stamina = IERC20(s.staminaAddress);
-        bool registered;
-        uint256[2] memory coords;
-        while (!registered) {
-            coords = LibCore._getRandomCoords(31);
-            if (s.map[coords[0]][coords[1]].account == address(0)) {
-                registered = true;
-                s.map[coords[0]][coords[1]].account = msg.sender;
-                s.map[coords[0]][coords[1]].units = 200;
-                s.map[coords[0]][coords[1]].gold = 0;
-                s.registered[msg.sender] = true;
-                s.lastStaminaClaimed[msg.sender] = block.timestamp;
-                stamina.mint(msg.sender, 200 ether);
-            }
-        }
-        emit Register(msg.sender, coords);
+        drawRandomNumbers(msg.sender);
+    }
+
+    function drawRandomNumbers(address _account) internal {
+        // Will revert if subscription is not set and funded.
+        uint256 requestId = VRFCoordinatorV2Interface(s.vrfCoordinator).requestRandomWords(
+            s.requestConfig.keyHash,
+            s.requestConfig.subId,
+            s.requestConfig.requestConfirmations,
+            s.requestConfig.callbackGasLimit,
+            s.requestConfig.numWords
+        );
+        s.vrfRequestIdToAccount[requestId] = _account;
     }
 
     // function testRegister(uint256[2] calldata coords) external {

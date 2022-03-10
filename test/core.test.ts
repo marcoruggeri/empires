@@ -156,12 +156,6 @@ describe("CoreFacet", function () {
       startCoords[1],
     ]);
     expect(tileAttacked.account === aliceAddress);
-    expect(parseInt(ethers.utils.formatUnits(troopStartPre.units, 0))).to.equal(
-      (
-        parseInt(ethers.utils.formatUnits(troopStartPost.units, 0)) +
-        parseInt(ethers.utils.formatUnits(tileAttacked.units, 0))
-      )
-    );
     expect(parseInt(ethers.utils.formatUnits(tileAttacked.units, 0))).to.be.equal(100);
   });
   it("Test attack tile with units inside", async function () {
@@ -236,4 +230,15 @@ describe("CoreFacet", function () {
       expect(parseInt(ethers.utils.formatUnits(afterGoldBalance))).to.be.
         equal(parseInt(ethers.utils.formatUnits(prevGoldBalance)) - nftPrice);
     });
+
+/*     it("Test special attack", async function() {
+      console.log(await coreFacet.getTile([10, 10]));
+      console.log(await coreFacet.getTile([19, 25]));
+      await specialsFacet.connect(alice).longRange(
+        [10, 10],
+        [19, 25],
+        40
+      )
+      console.log(await coreFacet.getTile([19, 25]))
+    }); */
 });
