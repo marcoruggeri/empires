@@ -8,12 +8,24 @@ import "../libraries/LibCore.sol";
 import "hardhat/console.sol";
 
 contract CoreFacet is Modifiers {
+    event Register(address _account, uint256[2] _coords);
+    event ClaimStamina(address _account);
+    event ClaimGold(address _account, uint256[2] _coords);
+    event DeployUnits(address _account, uint256[2] _coords, uint256 _amount);
+    event Attack(
+        uint256[2] _from,
+        uint256[2] _to,
+        uint256 _attackUnits,
+        uint256 _defendUnits
+    );
+
     function register() external {
         require(!s.registered[msg.sender], "CoreFacet: already registered");
         IERC20 stamina = IERC20(s.staminaAddress);
         bool registered;
+        uint256[2] memory coords;
         while (!registered) {
-            uint256[2] memory coords = LibCore._getRandomCoords(31);
+            coords = LibCore._getRandomCoords(31);
             if (s.map[coords[0]][coords[1]].account == address(0)) {
                 registered = true;
                 s.map[coords[0]][coords[1]].account = msg.sender;
@@ -24,23 +36,24 @@ contract CoreFacet is Modifiers {
                 stamina.mint(msg.sender, 200 ether);
             }
         }
+        emit Register(msg.sender, coords);
     }
 
-    function testRegister(uint256[2] calldata coords) external {
-        require(!s.registered[msg.sender], "CoreFacet: already registered");
-        IERC20 stamina = IERC20(s.staminaAddress);
-        bool registered;
-        while (!registered) {
-            if (s.map[coords[0]][coords[1]].account == address(0)) {
-                registered = true;
-                s.map[coords[0]][coords[1]].account = msg.sender;
-                s.map[coords[0]][coords[1]].units = 200;
-                s.registered[msg.sender] = true;
-                s.lastStaminaClaimed[msg.sender] = block.timestamp;
-                stamina.mint(msg.sender, 200 ether);
-            }
-        }
-    }
+    // function testRegister(uint256[2] calldata coords) external {
+    //     require(!s.registered[msg.sender], "CoreFacet: already registered");
+    //     IERC20 stamina = IERC20(s.staminaAddress);
+    //     bool registered;
+    //     while (!registered) {
+    //         if (s.map[coords[0]][coords[1]].account == address(0)) {
+    //             registered = true;
+    //             s.map[coords[0]][coords[1]].account = msg.sender;
+    //             s.map[coords[0]][coords[1]].units = 200;
+    //             s.registered[msg.sender] = true;
+    //             s.lastStaminaClaimed[msg.sender] = block.timestamp;
+    //             stamina.mint(msg.sender, 200 ether);
+    //         }
+    //     }
+    // }
 
     function claimStamina() external {
         require(s.registered[msg.sender], "CoreFacet: not registered");
@@ -51,6 +64,7 @@ contract CoreFacet is Modifiers {
         s.lastStaminaClaimed[msg.sender] = block.timestamp;
         IERC20 stamina = IERC20(s.staminaAddress);
         stamina.mint(msg.sender, 200 ether);
+        emit ClaimStamina(msg.sender);
     }
 
     function claimGold(uint256[2] calldata _coords) external {
@@ -83,6 +97,7 @@ contract CoreFacet is Modifiers {
         s.lastGoldClaimed[_coords[0]][_coords[1]] = block.timestamp;
         IERC20 gold = IERC20(s.goldAddress);
         gold.mint(msg.sender, goldAmount * 1e18);
+        emit ClaimGold(msg.sender, _coords);
     }
 
     function deployUnits(uint256[2] calldata _coords, uint256 _amount)
@@ -95,6 +110,7 @@ contract CoreFacet is Modifiers {
         IERC20 stamina = IERC20(s.staminaAddress);
         stamina.burnFrom(msg.sender, _amount * 1e18);
         s.map[_coords[0]][_coords[1]].units += _amount;
+        emit DeployUnits(msg.sender, _coords, _amount);
     }
 
     function attack(
@@ -121,6 +137,7 @@ contract CoreFacet is Modifiers {
         } else {
             LibCore._attack(_from, _to, _amount);
         }
+        emit Attack(_from, _to, _amount, s.map[_to[0]][_to[1]].units);
     }
 
     function getMap() external view returns (Tile[32][32] memory) {

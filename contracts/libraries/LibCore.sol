@@ -34,16 +34,16 @@ library LibCore {
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
-        uint256 attackPoints = _amount - (((_amount * 100) / 3) / 100);
-        uint256 defendPoints = s.map[_to[0]][_to[1]].units;
-
-        if (attackPoints > defendPoints) {
+        uint256 defendPoints = s.map[_to[0]][_to[1]].units +
+            (s.map[_to[0]][_to[1]].units * 30) /
+            100;
+        if (_amount > defendPoints) {
             s.map[_to[0]][_to[1]].account = msg.sender;
-            s.map[_to[0]][_to[1]].units = attackPoints - defendPoints;
+            s.map[_to[0]][_to[1]].units = _amount - defendPoints;
             s.map[_from[0]][_from[1]].units -= _amount;
-        } else if (defendPoints >= attackPoints) {
+        } else if (defendPoints >= _amount) {
             s.map[_from[0]][_from[1]].units -= _amount;
-            s.map[_to[0]][_to[1]].units -= attackPoints;
+            s.map[_to[0]][_to[1]].units -= _amount;
         }
     }
 

@@ -9,6 +9,13 @@ import "../libraries/LibCore.sol";
 import "hardhat/console.sol";
 
 contract SpecialsFacet is Modifiers {
+    event LongRange(
+        uint256[2] _from,
+        uint256[2] _to,
+        uint256 _attackUnits,
+        uint256 _defendUnits
+    );
+
     function longRange(
         uint256[2] calldata _from,
         uint256[2] calldata _to,
@@ -34,5 +41,6 @@ contract SpecialsFacet is Modifiers {
         } else {
             LibCore._attack(_from, _to, _amount);
         }
+        emit LongRange(_from, _to, _amount, s.map[_to[0]][_to[1]].units);
     }
 }
