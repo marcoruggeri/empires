@@ -11,8 +11,8 @@ contract VRFFacet is Modifiers, VRFConsumerBase {
 
     constructor()
         VRFConsumerBase(
-            0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
-            0xa36085F69e2889c224210F603D836748e7dC0088 // LINK Token
+            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
+            0x326C977E6efc84E512bB9C30f76E30c160eD06FB // LINK Token
         )
     {}
 
@@ -77,12 +77,10 @@ contract VRFFacet is Modifiers, VRFConsumerBase {
     }
 
     function setVrf(
-        address _vrfCoordinator,
         address _linkAddress,
         bytes32 _keyHash,
         uint256 _fee
     ) external onlyOwner {
-        s.vrfCoordinator = _vrfCoordinator;
         s.linkAddress = _linkAddress;
         s.keyHash = _keyHash;
         s.fee = _fee;

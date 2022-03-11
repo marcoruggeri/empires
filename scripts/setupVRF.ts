@@ -19,7 +19,7 @@ const { getSelectors, FacetCutAction } = require("./libraries/diamond");
 
 const gasPrice = 35000000000;
 
-const diamondAddress = "0x3B0174edCb6338fb823A59719afEf3E31A9624D3";
+const diamondAddress = "0xC38EAb8303331b999388dbFda99750DE562a9448";
 
 export async function setupVRF() {
   const accounts: Signer[] = await ethers.getSigners();
@@ -38,17 +38,19 @@ export async function setupVRF() {
     "0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4";
   const fee = 100000000000000;
 
-  const linkERC20 = (await ethers.getContractAt(
-    "contracts/interfaces/IERC20.sol:IERC20",
-    linkAddress
-  )) as IERC20;
+  await vrfFacet.register({ gasLimit: 300000, gasPrice });
 
-  await linkERC20.transfer(diamondAddress, ethers.utils.parseUnits("0.1"));
+  // const linkERC20 = (await ethers.getContractAt(
+  //   "contracts/interfaces/IERC20.sol:IERC20",
+  //   linkAddress
+  // )) as IERC20;
 
-  console.log("transfered Link to diamond");
+  // await linkERC20.transfer(diamondAddress, ethers.utils.parseUnits("0.1"));
 
-  await vrfFacet.setVrf(vrfCoordinatorAddress, linkAddress, keyHash, fee);
-  console.log("address setp");
+  // console.log("transfered Link to diamond");
+
+  // await vrfFacet.setVrf(linkAddress, keyHash, fee);
+  // console.log("address setp");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

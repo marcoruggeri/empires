@@ -15,7 +15,6 @@ struct AppStorage {
     address staminaAddress;
     address goldAddress;
     address specialsAddress;
-    address vrfCoordinator;
     address linkAddress;
     bytes32 keyHash;
     uint256 fee;
