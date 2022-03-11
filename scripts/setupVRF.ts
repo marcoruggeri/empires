@@ -19,7 +19,7 @@ const { getSelectors, FacetCutAction } = require("./libraries/diamond");
 
 const gasPrice = 35000000000;
 
-const diamondAddress = "0xD0535f73DBC8b3d2f4C4a78De48921688c49F54C";
+const diamondAddress = "0x3B0174edCb6338fb823A59719afEf3E31A9624D3";
 
 export async function setupVRF() {
   const accounts: Signer[] = await ethers.getSigners();
@@ -32,17 +32,11 @@ export async function setupVRF() {
     diamondAddress
   )) as VRFFacet;
 
-  const requestConfig: RequestConfig = {
-    subId: 0,
-    callbackGasLimit: 200000,
-    requestConfirmations: 10,
-    numWords: 6,
-    keyHash:
-      "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f",
-  };
-
-  const vrfCoordinatorAddress = "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed";
+  const vrfCoordinatorAddress = "0x8C7382F9D8f56b33781fE506E897a4F1e2d17255";
   const linkAddress = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
+  const keyHash =
+    "0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4";
+  const fee = 100000000000000;
 
   const linkERC20 = (await ethers.getContractAt(
     "contracts/interfaces/IERC20.sol:IERC20",
@@ -53,16 +47,8 @@ export async function setupVRF() {
 
   console.log("transfered Link to diamond");
 
-  await vrfFacet.setConfig(requestConfig);
-  console.log("config set up");
-  await vrfFacet.setVrfAddresses(vrfCoordinatorAddress, linkAddress);
+  await vrfFacet.setVrf(vrfCoordinatorAddress, linkAddress, keyHash, fee);
   console.log("address setp");
-
-  await vrfFacet.subscribe();
-  console.log("subscribed");
-
-  await vrfFacet.topUpSubscription(ethers.utils.parseUnits("0.1"));
-  console.log("toppedup");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
