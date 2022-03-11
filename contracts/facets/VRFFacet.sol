@@ -10,10 +10,35 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 contract VRFFacet is Modifiers {
     event Register(address _account, uint256[2] _coords);
 
-    function rawFulfillRandomWords(uint256 requestId, uint256[] memory randomWords) external {
-    require(msg.sender == s.vrfCoordinator, "Only VRFCoordinator can fulfill");
-    address account = s.vrfRequestIdToAccount[requestId];
-    _register(account, randomWords);
+    function register() external {
+        require(!s.registered[msg.sender], "CoreFacet: already registered");
+        s.registered[msg.sender] = true;
+        drawRandomNumbers(msg.sender);
+    }
+
+    function drawRandomNumbers(address _account) internal {
+        // Will revert if subscription is not set and funded.
+        uint256 requestId = VRFCoordinatorV2Interface(s.vrfCoordinator)
+            .requestRandomWords(
+                s.requestConfig.keyHash,
+                s.requestConfig.subId,
+                s.requestConfig.requestConfirmations,
+                s.requestConfig.callbackGasLimit,
+                s.requestConfig.numWords
+            );
+        s.vrfRequestIdToAccount[requestId] = _account;
+    }
+
+    function rawFulfillRandomWords(
+        uint256 requestId,
+        uint256[] memory randomWords
+    ) external {
+        require(
+            msg.sender == s.vrfCoordinator,
+            "Only VRFCoordinator can fulfill"
+        );
+        address account = s.vrfRequestIdToAccount[requestId];
+        _register(account, randomWords);
     }
 
     function _register(address account, uint256[] memory randomWords) internal {
@@ -37,14 +62,15 @@ contract VRFFacet is Modifiers {
                 break;
             }
         }
-
-        if(!registered) {
-            (bool success,) = account.call{value: 5 ether} ("");
-            require(success);
+        if (!registered) {
+            s.registered[account] = false;
         }
     }
 
-    function setConfig(RequestConfig calldata _requestConfig) external onlyOwner {
+    function setConfig(RequestConfig calldata _requestConfig)
+        external
+        onlyOwner
+    {
         s.requestConfig = RequestConfig(
             _requestConfig.subId,
             _requestConfig.callbackGasLimit,
@@ -57,17 +83,28 @@ contract VRFFacet is Modifiers {
     function subscribe() external onlyOwner {
         address[] memory consumers = new address[](1);
         consumers[0] = address(this);
-        s.requestConfig.subId = VRFCoordinatorV2Interface(s.vrfCoordinator).createSubscription();
-        VRFCoordinatorV2Interface(s.vrfCoordinator).addConsumer(s.requestConfig.subId, consumers[0]);
+        s.requestConfig.subId = VRFCoordinatorV2Interface(s.vrfCoordinator)
+            .createSubscription();
+        VRFCoordinatorV2Interface(s.vrfCoordinator).addConsumer(
+            s.requestConfig.subId,
+            consumers[0]
+        );
     }
 
-    function setVrfAddresses(address _vrfCoordinator, address _linkAddress) external onlyOwner {
+    function setVrfAddresses(address _vrfCoordinator, address _linkAddress)
+        external
+        onlyOwner
+    {
         s.vrfCoordinator = _vrfCoordinator;
         s.linkAddress = _linkAddress;
     }
 
     // Assumes this contract owns link
     function topUpSubscription(uint256 amount) external {
-        LinkTokenInterface(s.linkAddress).transferAndCall(s.vrfCoordinator, amount, abi.encode(s.requestConfig.subId));
+        LinkTokenInterface(s.linkAddress).transferAndCall(
+            s.vrfCoordinator,
+            amount,
+            abi.encode(s.requestConfig.subId)
+        );
     }
 }

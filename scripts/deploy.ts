@@ -9,7 +9,11 @@ import {
   Gold,
   Specials,
   CoreFacet,
+  VRFFacet,
+  IERC20,
 } from "../typechain";
+
+import { RequestConfig } from "../types";
 
 const { getSelectors, FacetCutAction } = require("./libraries/diamond");
 
@@ -55,6 +59,7 @@ export async function deployDiamond() {
     "OwnershipFacet",
     "CoreFacet",
     "SpecialsFacet",
+    "VRFFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {
@@ -128,6 +133,37 @@ export async function deployDiamond() {
   );
   await goldSetAddresses.wait();
 
+  const vrfFacet = (await ethers.getContractAt(
+    "VRFFacet",
+    diamond.address
+  )) as VRFFacet;
+
+  const requestConfig: RequestConfig = {
+    subId: 0,
+    callbackGasLimit: 200000,
+    requestConfirmations: 10,
+    numWords: 6,
+    keyHash:
+      "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f",
+  };
+
+  const vrfCoordinatorAddress = "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed";
+  const linkAddress = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
+
+  const linkERC20 = (await ethers.getContractAt(
+    "contracts/interfaces/IERC20.sol:IERC20",
+    linkAddress
+  )) as IERC20;
+
+  await linkERC20.transfer(diamond.address, ethers.utils.parseUnits("0.1"));
+
+  await vrfFacet.setConfig(requestConfig);
+  await vrfFacet.setVrfAddresses(vrfCoordinatorAddress, linkAddress);
+
+  await vrfFacet.subscribe();
+
+  await vrfFacet.topUpSubscription(ethers.utils.parseUnits("0.1"));
+
   const coreFacet = (await ethers.getContractAt(
     "CoreFacet",
     diamond.address
@@ -141,10 +177,10 @@ export async function deployDiamond() {
   );
   for (let i = 0; i < 32; i++) {
     for (let j = 0; j < 32; j++) {
-      let r = Math.floor(Math.random() * 8);
+      let r = Math.floor(Math.random() * 10);
       let gold: any = 0;
       if (r === 0) {
-        gold = Math.floor(Math.random() * 999) + 100;
+        gold = Math.floor(Math.random() * 499) + 100;
       }
       let tile = ethers.utils.parseEther(gold.toString());
       mapGold[i][j] = tile;

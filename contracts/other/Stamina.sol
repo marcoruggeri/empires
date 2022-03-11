@@ -24,4 +24,20 @@ contract Stamina is ERC20, Ownable {
         require(msg.sender == gameDiamond, "Stamina: only gameDiamond");
         _burn(_account, _amount);
     }
+
+    function transfer(address to, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        revert("non transferable");
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
+        revert("non transferable");
+    }
 }

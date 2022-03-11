@@ -19,23 +19,6 @@ contract CoreFacet is Modifiers {
         uint256 _defendUnits
     );
 
-    function register() external onlyParcelOwner(_realmId) {
-        require(!s.registered[msg.sender], "CoreFacet: already registered");
-        drawRandomNumbers(msg.sender);
-    }
-
-    function drawRandomNumbers(address _account) internal {
-        // Will revert if subscription is not set and funded.
-        uint256 requestId = VRFCoordinatorV2Interface(s.vrfCoordinator).requestRandomWords(
-            s.requestConfig.keyHash,
-            s.requestConfig.subId,
-            s.requestConfig.requestConfirmations,
-            s.requestConfig.callbackGasLimit,
-            s.requestConfig.numWords
-        );
-        s.vrfRequestIdToAccount[requestId] = _account;
-    }
-
     // function testRegister(uint256[2] calldata coords) external {
     //     require(!s.registered[msg.sender], "CoreFacet: already registered");
     //     IERC20 stamina = IERC20(s.staminaAddress);
