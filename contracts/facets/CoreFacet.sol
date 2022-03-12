@@ -38,12 +38,12 @@ contract CoreFacet is Modifiers {
     function claimStamina() external {
         require(s.registered[msg.sender], "CoreFacet: not registered");
         require(
-            block.timestamp > s.lastStaminaClaimed[msg.sender] + 3 hours,
+            block.timestamp > s.lastStaminaClaimed[msg.sender] + 8 hours,
             "CoreFacet: stm 24hr limit"
         );
         s.lastStaminaClaimed[msg.sender] = block.timestamp;
         IERC20 stamina = IERC20(s.staminaAddress);
-        stamina.mint(msg.sender, 200 ether);
+        stamina.mint(msg.sender, 500 ether);
         emit ClaimStamina(msg.sender);
     }
 

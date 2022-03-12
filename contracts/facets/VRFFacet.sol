@@ -30,6 +30,7 @@ contract VRFFacet is Modifiers, VRFConsumerBase {
         );
         requestId = requestRandomness(s.keyHash, s.fee);
         s.vrfRequestIdToAccount[requestId] = _account;
+        s.registrationStarted[_account] = true;
     }
 
     /**
@@ -44,8 +45,10 @@ contract VRFFacet is Modifiers, VRFConsumerBase {
     }
 
     function register() external {
-        require(!s.registered[msg.sender], "CoreFacet: already registered");
-        s.registered[msg.sender] = true;
+        require(
+            !s.registrationStarted[msg.sender],
+            "CoreFacet: already registered"
+        );
         getRandomNumber(msg.sender);
     }
 
@@ -60,13 +63,14 @@ contract VRFFacet is Modifiers, VRFConsumerBase {
             x = (randomWords[i] % 31);
             y = (randomWords[i + 1] % 31);
             if (s.map[x][y].account == address(0)) {
-                registered = true;
+                s.registered[account] = true;
                 s.map[x][y].account = account;
                 s.map[x][y].units = 200;
                 s.map[x][y].gold = 0;
                 s.registered[account] = true;
                 s.lastStaminaClaimed[account] = block.timestamp;
-                stamina.mint(account, 200 ether);
+                registered = true;
+                stamina.mint(account, 250 ether);
                 emit Register(account, [x, y]);
                 break;
             }

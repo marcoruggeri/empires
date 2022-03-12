@@ -22,6 +22,7 @@ struct AppStorage {
     // x => y => last timestamp
     mapping(uint256 => mapping(uint256 => uint256)) lastGoldClaimed;
     mapping(bytes32 => address) vrfRequestIdToAccount;
+    mapping(address => bool) registrationStarted;
 }
 
 library LibAppStorage {
