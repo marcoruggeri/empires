@@ -182,12 +182,22 @@ export async function deployDiamond() {
   );
   await setAddresses.wait();
 
-  const addSpecial = await specials.addSpecial(
+  const addSpecial0 = await specials.addSpecial(
     0,
     ethers.utils.parseUnits("50"),
     { gasPrice }
   );
-  await addSpecial.wait();
+  await addSpecial0.wait();
+
+  //adding the second special HERE(M)
+
+  const addSpecial1 = await specials.addSpecial(
+    1,
+    ethers.utils.parseUnits("500"),
+    { gasPrice }
+  );
+  
+  await addSpecial1.wait()
 
   return diamond.address;
 }

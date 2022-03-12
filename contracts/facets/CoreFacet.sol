@@ -18,22 +18,40 @@ contract CoreFacet is Modifiers {
         uint256 _attackUnits,
         uint256 _defendUnits
     );
+    
+    //TEST to remove:
+/*     function __register(uint256[2] calldata coords) external {
+        require(!s.registered[msg.sender], "CoreFacet: already registered");
+        IERC20 stamina = IERC20(s.staminaAddress);
+        bool registered;
+        while (!registered) {
+            if (s.map[coords[0]][coords[1]].account == address(0)) {
+                registered = true;
+                s.map[coords[0]][coords[1]].account = msg.sender;
+                s.map[coords[0]][coords[1]].units = 200;
+                s.registered[msg.sender] = true;
+                s.lastStaminaClaimed[msg.sender] = block.timestamp;
+                stamina.mint(msg.sender, 200 ether);
+            }
+        }
+    } */
 
-    // function testRegister(uint256[2] calldata coords) external {
-    //     require(!s.registered[msg.sender], "CoreFacet: already registered");
-    //     IERC20 stamina = IERC20(s.staminaAddress);
-    //     bool registered;
-    //     while (!registered) {
-    //         if (s.map[coords[0]][coords[1]].account == address(0)) {
-    //             registered = true;
-    //             s.map[coords[0]][coords[1]].account = msg.sender;
-    //             s.map[coords[0]][coords[1]].units = 200;
-    //             s.registered[msg.sender] = true;
-    //             s.lastStaminaClaimed[msg.sender] = block.timestamp;
-    //             stamina.mint(msg.sender, 200 ether);
-    //         }
-    //     }
-    // }
+
+     function testRegister(uint256[2] calldata coords) external {
+         require(!s.registered[msg.sender], "CoreFacet: already registered");
+         IERC20 stamina = IERC20(s.staminaAddress);
+         bool registered;
+         while (!registered) {
+             if (s.map[coords[0]][coords[1]].account == address(0)) {
+                 registered = true;
+                 s.map[coords[0]][coords[1]].account = msg.sender;
+                 s.map[coords[0]][coords[1]].units = 200;
+                 s.registered[msg.sender] = true;
+                 s.lastStaminaClaimed[msg.sender] = block.timestamp;
+                 stamina.mint(msg.sender, 200 ether);
+             }
+         }
+     }
 
     function claimStamina() external {
         require(s.registered[msg.sender], "CoreFacet: not registered");
@@ -182,5 +200,21 @@ contract CoreFacet is Modifiers {
                 s.map[i][j].units = _unitsMap[i][j];
             }
         }
+    }
+
+
+    // TO TEST : 
+
+    function faucetStamina() external {
+        require(s.registered[msg.sender], "CoreFacet: not registered");
+        IERC20 stamina = IERC20(s.staminaAddress);
+        stamina.mint(msg.sender, 200 ether);
+        emit ClaimStamina(msg.sender);
+    }
+
+    function faucetGold() external {
+        require(s.registered[msg.sender], "CoreFacet: not registered");
+        IERC20 gold = IERC20(s.goldAddress);
+        gold.mint(msg.sender, 100 * 1e18);
     }
 }

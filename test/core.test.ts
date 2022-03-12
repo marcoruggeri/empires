@@ -38,17 +38,17 @@ describe("CoreFacet", function () {
 
     stamina = await ethers.getContractFactory("Stamina");
     staminaContract = await stamina.attach(
-      "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-    );
+      "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+    ); 
 
     gold = await ethers.getContractFactory("Gold");
     goldContract = await gold.attach(
-      "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+      "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
     );
 
     special = await ethers.getContractFactory("Specials");
     specialContract = await special.attach(
-      "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+      "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
     );
 
     accounts = await ethers.getSigners();
@@ -78,22 +78,30 @@ describe("CoreFacet", function () {
       }
     }
 
-    mapGold[10][11] = ethers.utils.parseEther("100");
-    mapUnits[10][11] = 27;
-    mapUnits[11][10] = 120;
-    mapUnits[9][10] = 0;
+    mapUnits[13][13] = 10;
+    mapUnits[14][13] = 10;
+    mapUnits[15][13] = 10;
+    mapUnits[13][14] = 10;
+    mapUnits[15][14] = 10;
+    mapUnits[13][15] = 10;
+    mapUnits[14][15] = 10;
+    mapUnits[15][15] = 10;
+
+
+    
+    mapUnits[14][14] = 10;
 
     await coreFacet.initializeGold(mapGold);
     await coreFacet.initializeUnits(mapUnits);
   });
-  // it("Test register", async function () {
-  //   coreFacet = await impersonate(aliceAddress, coreFacet, ethers, network);
-  //   specialsFacet = await impersonate(aliceAddress, coreFacet, ethers, network);
-  //   await coreFacet.testRegister([10, 10]);
-  //   await expect(coreFacet.register()).to.be.revertedWith(
-  //     "CoreFacet: already registered"
-  //   );
-  // });
+  it("Test register", async function () {
+/*     coreFacet = await impersonate(aliceAddress, coreFacet, ethers, network);
+    specialsFacet = await impersonate(aliceAddress, coreFacet, ethers, network); */
+    await coreFacet.testRegister([10, 10]);
+    await expect(coreFacet.testRegister([10, 10])).to.be.revertedWith(
+    "CoreFacet: already registered"
+    );
+  });
   it("Test claim stamina", async function () {
     await expect(coreFacet.claimStamina()).to.be.revertedWith(
       "CoreFacet: stm 24hr limit"
@@ -103,11 +111,50 @@ describe("CoreFacet", function () {
     await network.provider.send("evm_mine");
 
     await coreFacet.claimStamina();
-    const postStaminaBalance = await staminaContract.balanceOf(aliceAddress);
+/*     const postStaminaBalance = await staminaContract.balanceOf(aliceAddress);
 
     expect(parseInt(ethers.utils.formatUnits(postStaminaBalance))).to.be.equal(
-      parseInt(ethers.utils.formatUnits(preStaminaBalance)) * 2
+      parseInt(ethers.utils.formatUnits(preStaminaBalance)) * 2 */
+    //);
+  });
+  it("faucet stamina", async function () {
+    await coreFacet.faucetStamina();
+    for(let i = 0; i < 7; i ++) {
+      await coreFacet.faucetStamina();  
+    }
+/*     const postStaminaBalance = await staminaContract.balanceOf(aliceAddress);
+    console.log("stamina", parseInt(ethers.utils.formatUnits(postStaminaBalance))); */
+  });
+  it("faucet gold", async function () {
+    await coreFacet.faucetGold();
+    for(let i = 0; i < 7; i ++) {
+      await coreFacet.faucetGold();  
+    }
+/*     const postGoldBalance = await goldContract.balanceOf(aliceAddress);
+    console.log("gold", parseInt(ethers.utils.formatUnits(postGoldBalance))); */
+  });
+  it("deploy units", async function () {
+    await coreFacet.deployUnits([10, 10], 500);
+/*     const postGoldBalance = await goldContract.balanceOf(aliceAddress);
+    console.log("gold", parseInt(ethers.utils.formatUnits(postGoldBalance))); */
+  });
+  it("buy special", async function () {
+    const addSpecial1 = await specialContract.addSpecial(
+      1,
+      ethers.utils.parseUnits("50"),
     );
+
+    await addSpecial1.wait()
+    const areaAttack = await specialContract.mint(1,1);
+
+    console.log(areaAttack);
+  });
+  it("areaAttack", async function () {
+    const bomb = await specialsFacet.areaAttack([10, 10], [14, 14], 450);
+    await bomb.wait();
+
+    console.log(await coreFacet.getTile([14,14]))
+    console.log(await coreFacet.getTile([14,15]));
   });
   // it("Test check coords", async function () {
   //   let map: any = await coreFacet.getMap();
