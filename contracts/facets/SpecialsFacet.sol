@@ -16,6 +16,8 @@ contract SpecialsFacet is Modifiers {
         uint256 _defendUnits
     );
 
+    event SuperDefender(uint256[2] _from);
+
     function longRange(
         uint256[2] calldata _from,
         uint256[2] calldata _to,
@@ -42,5 +44,18 @@ contract SpecialsFacet is Modifiers {
             LibCore._attack(_from, _to, _amount);
         }
         emit LongRange(_from, _to, _amount, s.map[_to[0]][_to[1]].units);
+    }
+
+    function superDefender(uint256[2] calldata _from) external {
+        require(
+            s.map[_from[0]][_from[1]].account == msg.sender,
+            "CoreFacet: not owner"
+        );
+        IERC1155 specials = IERC1155(s.specialsAddress);
+        specials.burnFrom(msg.sender, 1);
+        IERC20 stamina = IERC20(s.staminaAddress);
+        stamina.burnFrom(msg.sender, 10 ether);
+        s.map[_from[0]][_from[1]].lastSuperDefender = block.timestamp;
+        emit SuperDefender(_from);
     }
 }

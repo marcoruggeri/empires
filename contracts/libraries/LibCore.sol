@@ -37,6 +37,11 @@ library LibCore {
         uint256 defendPoints = s.map[_to[0]][_to[1]].units +
             (s.map[_to[0]][_to[1]].units * 30) /
             100;
+        if (
+            block.timestamp < s.map[_to[0]][_to[1]].lastSuperDefender + 12 hours
+        ) {
+            defendPoints = defendPoints + ((defendPoints * 70) / 100);
+        }
         if (_amount > defendPoints) {
             s.map[_to[0]][_to[1]].account = msg.sender;
             s.map[_to[0]][_to[1]].units = _amount - defendPoints;

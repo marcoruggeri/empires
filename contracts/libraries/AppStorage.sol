@@ -7,6 +7,7 @@ struct Tile {
     address account;
     uint256 units;
     uint256 gold;
+    uint256 lastSuperDefender;
 }
 
 struct AppStorage {

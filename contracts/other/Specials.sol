@@ -17,6 +17,7 @@ contract Specials is ERC1155, Ownable {
     }
 
     function mint(uint256 _id, uint256 _amount) external {
+        require(prices[_id] > 0, "Specials: not released yet");
         IERC20 gold = IERC20(goldAddress);
         gold.burnFrom(msg.sender, prices[_id] * _amount);
         _mint(msg.sender, _id, _amount, "");
