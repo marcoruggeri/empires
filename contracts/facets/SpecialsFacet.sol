@@ -75,8 +75,8 @@ contract SpecialsFacet is Modifiers {
             //here remove enemy from the territory before the attack and leave just 1 unit
             /* s.map[_to[0]][_to[1]].units = 1;
             LibCore._attack(_from, _to, _amount); */
-            s.map[_to[0]][_to[1]].units = 0;
-            LibCore._attackEmpty(_from, _to, _amount / 9);
+            /* s.map[_to[0]][_to[1]].units = 0; */
+            LibCore._attack(_from, _to, _amount / 9);
         }
 
         // automatically attack every tail around the target
@@ -147,7 +147,7 @@ contract SpecialsFacet is Modifiers {
         toAttackLater[1] = _to[1] + 1;
         if (s.map[_to[0]][_to[1] + 1].units == 0) {
             LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
-        } else if (s.map[_to[0] - 1][_to[1] + 1].account == msg.sender) {
+        } else if (s.map[_to[0]][_to[1] + 1].account == msg.sender) {
             LibCore._moveUnits(_from, toAttackLater, _amount / 9);
         } else {
             LibCore._attack(_from, toAttackLater, _amount / 9);
@@ -157,7 +157,7 @@ contract SpecialsFacet is Modifiers {
         toAttackLater[1] = _to[1] + 1;
         if (s.map[_to[0] + 1][_to[1] + 1].units == 0) {
             LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
-        } else if (s.map[_to[0] - 1][_to[1] + 1].account == msg.sender) {
+        } else if (s.map[_to[0] + 1][_to[1] + 1].account == msg.sender) {
             LibCore._moveUnits(_from, toAttackLater, _amount / 9);
         } else {
             LibCore._attack(_from, toAttackLater, _amount / 9);

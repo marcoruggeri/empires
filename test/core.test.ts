@@ -78,13 +78,13 @@ describe("CoreFacet", function () {
       }
     }
 
-    mapUnits[13][13] = 10;
+    mapUnits[13][13] = 0;
     mapUnits[14][13] = 10;
-    mapUnits[15][13] = 10;
+    mapUnits[15][13] = 60;
     mapUnits[13][14] = 10;
     mapUnits[15][14] = 10;
-    mapUnits[13][15] = 10;
-    mapUnits[14][15] = 10;
+    mapUnits[13][15] = 0;
+    mapUnits[14][15] = 0;
     mapUnits[15][15] = 10;
 
 
@@ -153,8 +153,17 @@ describe("CoreFacet", function () {
     const bomb = await specialsFacet.areaAttack([10, 10], [14, 14], 450);
     await bomb.wait();
 
-    console.log(await coreFacet.getTile([14,14]))
-    console.log(await coreFacet.getTile([14,15]));
+    console.log("center", await coreFacet.getTile([14,14]))
+    console.log("bottom", await coreFacet.getTile([14,15]));
+    console.log("right", await coreFacet.getTile([15,14]));
+    console.log("left", await coreFacet.getTile([13,14]));
+    console.log("top", await coreFacet.getTile([14,13]));
+    console.log("top-left", await coreFacet.getTile([13,13]));
+    console.log("top-right", await coreFacet.getTile([15,13]));
+    console.log("bottom-left", await coreFacet.getTile([13,15]));
+    console.log("bottom-right", await coreFacet.getTile([15,15]));
+
+
   });
   // it("Test check coords", async function () {
   //   let map: any = await coreFacet.getMap();
