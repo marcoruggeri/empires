@@ -72,10 +72,6 @@ contract SpecialsFacet is Modifiers {
         } else if (s.map[_to[0]][_to[1]].account == msg.sender) {
             LibCore._moveUnits(_from, _to, _amount / 9);
         } else {
-            //here remove enemy from the territory before the attack and leave just 1 unit
-            /* s.map[_to[0]][_to[1]].units = 1;
-            LibCore._attack(_from, _to, _amount); */
-            /* s.map[_to[0]][_to[1]].units = 0; */
             LibCore._attack(_from, _to, _amount / 9);
         }
 

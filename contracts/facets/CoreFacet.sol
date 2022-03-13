@@ -18,24 +18,7 @@ contract CoreFacet is Modifiers {
         uint256 _attackUnits,
         uint256 _defendUnits
     );
-    
-    //TEST to remove:
-/*     function __register(uint256[2] calldata coords) external {
-        require(!s.registered[msg.sender], "CoreFacet: already registered");
-        IERC20 stamina = IERC20(s.staminaAddress);
-        bool registered;
-        while (!registered) {
-            if (s.map[coords[0]][coords[1]].account == address(0)) {
-                registered = true;
-                s.map[coords[0]][coords[1]].account = msg.sender;
-                s.map[coords[0]][coords[1]].units = 200;
-                s.registered[msg.sender] = true;
-                s.lastStaminaClaimed[msg.sender] = block.timestamp;
-                stamina.mint(msg.sender, 200 ether);
-            }
-        }
-    } */
-
+     // TEST REGISTER TO REMOVE
 
      function testRegister(uint256[2] calldata coords) external {
          require(!s.registered[msg.sender], "CoreFacet: already registered");
