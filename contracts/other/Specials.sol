@@ -10,10 +10,19 @@ contract Specials is ERC1155, Ownable {
     address public goldAddress;
     // id => price
     mapping(uint256 => uint256) public prices;
+    string private _uri;
 
     constructor(address _gameDiamond, address _goldAddress) ERC1155("") {
         gameDiamond = _gameDiamond;
         goldAddress = _goldAddress;
+    }
+
+    function uri(uint256) public view override returns (string memory) {
+        return _uri;
+    }
+
+    function setUri(string calldata __uri) external onlyOwner {
+        _uri = __uri;
     }
 
     function mint(uint256 _id, uint256 _amount) external {

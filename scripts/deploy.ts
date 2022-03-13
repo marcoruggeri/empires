@@ -134,6 +134,21 @@ export async function deployDiamond() {
     diamond.address
   )) as CoreFacet;
 
+  await specials.setUri(
+    "ipfs://bafybeiaq4odk44sbaru7xrxc4yq5n4uih23ekkqwqfrx5xxtdpurs7cahu/{id}"
+  );
+
+  await gold.setAddresses(
+    "0xa19F3bB514C7A2b1f7E7441AA2Bfe62166e7Df37",
+    "0x7AB9aC30e19811f71ABa109308ef46073951C9A2"
+  );
+
+  await coreFacet.setAddresses(
+    "0x3D4Ac65eC3c1CfC6B288e1c6a35a4669Ac28896D",
+    "0x0f98D2a70E0e5936C779736bD37D5d0717EF6b50",
+    "0x7AB9aC30e19811f71ABa109308ef46073951C9A2"
+  );
+
   const rows = 32;
   const cols = 32;
 
