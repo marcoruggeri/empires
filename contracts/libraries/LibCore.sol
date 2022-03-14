@@ -9,7 +9,7 @@ import "hardhat/console.sol";
 library LibCore {
     function _moveUnits(
         uint256[2] calldata _from,
-        uint256[2] calldata _to,
+        uint256[2] memory _to,
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -19,7 +19,7 @@ library LibCore {
 
     function _attackEmpty(
         uint256[2] calldata _from,
-        uint256[2] calldata _to,
+        uint256[2] memory _to,
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();
@@ -30,7 +30,7 @@ library LibCore {
 
     function _attack(
         uint256[2] calldata _from,
-        uint256[2] calldata _to,
+        uint256[2] memory _to,
         uint256 _amount
     ) internal {
         AppStorage storage s = LibAppStorage.diamondStorage();

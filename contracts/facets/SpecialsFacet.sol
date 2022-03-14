@@ -58,4 +58,122 @@ contract SpecialsFacet is Modifiers {
         s.map[_from[0]][_from[1]].lastSuperDefender = block.timestamp;
         emit SuperDefender(_from);
     }
+
+    function areaAttack(
+        uint256[2] calldata _from,
+        uint256[2] calldata _to,
+        uint256 _amount
+    ) external {
+        require(
+            s.map[_from[0]][_from[1]].account == msg.sender,
+            "CoreFacet: not owner"
+        );
+        require(
+            s.map[_from[0]][_from[1]].units > _amount,
+            "CoreFacet: high units"
+        );
+        require(_to[0] > 0 && _to[0] < 31, "wrong cordinates x");
+        require(_to[1] > 0 && _to[1] < 31, "wrong cordinates y");
+        require(_amount == 450, "450 units needed to attack");
+        IERC1155 specials = IERC1155(s.specialsAddress);
+        specials.burnFrom(msg.sender, 1);
+        IERC20 stamina = IERC20(s.staminaAddress);
+        stamina.burnFrom(msg.sender, 300 ether);
+        LibCore._checkCordsLongRange(_from, _to);
+
+        // here attack the _to target
+        if (s.map[_to[0]][_to[1]].units == 0) {
+            LibCore._attackEmpty(_from, _to, _amount / 9);
+        } else if (s.map[_to[0]][_to[1]].account == msg.sender) {
+            LibCore._moveUnits(_from, _to, _amount / 9);
+        } else {
+            //here remove enemy from the territory before the attack and leave just 1 unit
+            s.map[_to[0]][_to[1]].units = 0;
+            LibCore._attackEmpty(_from, _to, _amount / 9);
+        }
+
+        // automatically attack every tile around the target
+        uint256[2] memory toAttackLater;
+        toAttackLater[0] = _to[0] - 1;
+        toAttackLater[1] = _to[1] - 1;
+        //high-left corner
+        if (s.map[_to[0] - 1][_to[1] - 1].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] - 1][_to[1] - 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // top
+        toAttackLater[0] = _to[0];
+        toAttackLater[1] = _to[1] - 1;
+        if (s.map[_to[0]][_to[1] - 1].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0]][_to[1] - 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // top-right
+        toAttackLater[0] = _to[0] + 1;
+        toAttackLater[1] = _to[1] - 1;
+        if (s.map[_to[0] + 1][_to[1] - 1].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] + 1][_to[1] - 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // left
+        toAttackLater[0] = _to[0] - 1;
+        toAttackLater[1] = _to[1];
+        if (s.map[_to[0] - 1][_to[1]].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] - 1][_to[1]].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // right
+        toAttackLater[0] = _to[0] + 1;
+        toAttackLater[1] = _to[1];
+        if (s.map[_to[0] + 1][_to[1]].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] + 1][_to[1]].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // bottom-left
+        toAttackLater[0] = _to[0] - 1;
+        toAttackLater[1] = _to[1] + 1;
+        if (s.map[_to[0] - 1][_to[1] + 1].units == 0) {
+            console.log("SPECIAL", _amount / 9);
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] - 1][_to[1] + 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // bottom
+        toAttackLater[0] = _to[0];
+        toAttackLater[1] = _to[1] + 1;
+        if (s.map[_to[0]][_to[1] + 1].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] - 1][_to[1] + 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+        // bottom-right
+        toAttackLater[0] = _to[0] + 1;
+        toAttackLater[1] = _to[1] + 1;
+        if (s.map[_to[0] + 1][_to[1] + 1].units == 0) {
+            LibCore._attackEmpty(_from, toAttackLater, _amount / 9);
+        } else if (s.map[_to[0] - 1][_to[1] + 1].account == msg.sender) {
+            LibCore._moveUnits(_from, toAttackLater, _amount / 9);
+        } else {
+            LibCore._attack(_from, toAttackLater, _amount / 9);
+        }
+    }
 }

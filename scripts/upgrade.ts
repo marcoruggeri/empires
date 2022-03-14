@@ -11,33 +11,35 @@ export async function upgrade(diamondAddress: string) {
   const diamondUpgrader = "0x296903b6049161bebEc75F6f391a930bdDBDbbFc";
 
   const facets: FacetsAndAddSelectors[] = [
-    {
-      facetName: "CoreFacet",
-      addSelectors: [
-        // "function register() external",
-        // "function claimStamina() external",
-        // "function claimGold(uint256[2] calldata _coords) external",
-        // "function getRegistered(address _account) external view returns (bool)",
-        // "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
-        // "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
-      ],
-      removeSelectors: [
-        // "function register() external",
-        "function claimStamina() external",
-        "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
-        "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
-        "function claimGold(uint256[2] calldata _coords) external",
-      ],
-    },
     // {
-    //   facetName: "SpecialsFacet",
+    //   facetName: "CoreFacet",
     //   addSelectors: [
-    //     "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+    //     // "function register() external",
+    //     // "function claimStamina() external",
+    //     // "function claimGold(uint256[2] calldata _coords) external",
+    //     // "function getRegistered(address _account) external view returns (bool)",
+    //     // "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
+    //     // "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
     //   ],
     //   removeSelectors: [
-    //     "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+    //     // "function register() external",
+    //     "function claimStamina() external",
+    //     "function deployUnits(uint256[2] calldata _coords, uint256 _amount) external",
+    //     "function attack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+    //     "function claimGold(uint256[2] calldata _coords) external",
     //   ],
     // },
+    {
+      facetName: "SpecialsFacet",
+      addSelectors: [
+        // "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+        "function superDefender(uint256[2] calldata _from) external",
+        "function areaAttack(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+      ],
+      removeSelectors: [
+        // "function longRange(uint256[2] calldata _from, uint256[2] calldata _to, uint256 _amount) external",
+      ],
+    },
   ];
 
   const joined = convertFacetAndSelectorsToString(facets);
@@ -46,7 +48,7 @@ export async function upgrade(diamondAddress: string) {
     diamondUpgrader: diamondUpgrader,
     diamondAddress: diamondAddress,
     facetsAndAddSelectors: joined,
-    initAddress: diamondAddress,
+    initAddress: "0x0000000000000000000000000000000000000000",
     initCalldata: undefined,
     useLedger: false,
     useMultisig: false,
@@ -56,7 +58,7 @@ export async function upgrade(diamondAddress: string) {
 }
 
 if (require.main === module) {
-  upgrade("0xc7F33460243Db61ad8BB0625F56964c3dEE788f2")
+  upgrade("0xa19F3bB514C7A2b1f7E7441AA2Bfe62166e7Df37")
     .then(() => process.exit(0))
     // .then(() => console.log('upgrade completed') /* process.exit(0) */)
     .catch((error) => {
